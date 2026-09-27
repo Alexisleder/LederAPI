@@ -1,0 +1,42 @@
+plugins {
+    id 'base'
+}
+
+group = 'com.alexisleder'
+version = '1.0.0'
+
+def targetJavaVersion = providers.gradleProperty('targetJavaVersion')
+        .map { value -> Integer.parseInt(value) }
+        .getOrElse(21)
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    group = rootProject.group
+    version = rootProject.version
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+        }
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release.set(targetJavaVersion)
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options.encoding = 'UTF-8'
+        options.charSet = 'UTF-8'
+        options.addStringOption('Xdoclint:all,-missing', '-quiet')
+    }
+
+    tasks.withType(AbstractArchiveTask).configureEach {
+        reproducibleFileOrder = true
+        preserveFileTimestamps = false
+    }
+}
